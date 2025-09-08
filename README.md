@@ -59,5 +59,5 @@ If you find this work useful for your research, please consider citing our paper
 }
 ```
 
-## 致谢 (Acknowledgements)
+## Acknowledgements
 Our implementation references the code base of [Time-Series-Library](https://github.com/thuml/Time-Series-Library). We thank the original authors for their open-sourcing.
