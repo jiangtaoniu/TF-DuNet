@@ -15,9 +15,9 @@ This is the official PyTorch implementation of **TF-DuNet**. Our work tackles a 
   <i>The architecture of TF-DuNet, featuring a high-fidelity temporal branch (ASST) and a structural time-frequency branch (GSSTM).</i>
 </p>
 
-## 快速开始 (Getting Started)
+## Getting Started
 
-### 1. 环境配置 (Setup Environment)
+### 1. Setup Environment
 ```bash
 
 conda create --name TF-DuNet python=3.8 -y
@@ -36,7 +36,7 @@ pip install axial-positional-embedding==0.2.1 certifi==2022.12.7 charset-normali
 
 ```
 
-### 2. 数据准备 (Prepare Data)
+### 2. Prepare Data
 Download the datasets from [DataSet](https://drive.google.com/drive/folders/13Cg1KYOlzM5C7K8gK8NfC-F3EYxkM3D2). Place the data files (`.csv` or `.npz`) into the `./dataset/` directory according to their names. The expected structure is:
 ```
 dataset/
@@ -47,7 +47,7 @@ dataset/
 └── ...
 ```
 
-## 引用 (Citation)
+## Citation
 
 If you find this work useful for your research, please consider citing our paper:
 ```bibtex
