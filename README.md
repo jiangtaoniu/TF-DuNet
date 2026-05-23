@@ -15,7 +15,7 @@
 This is the official PyTorch implementation of **TF-DuNet**. Our work tackles a core challenge in time series forecasting: simultaneously modeling high-frequency, transient dynamics and quasi-stationary, multi-scale structures. TF-DuNet introduces a novel asymmetric dual-branch architecture to explicitly decouple and specialize in processing these two complementary information streams.
 
 <p align="center">
-  <img src="assets/figure1.png" width="800"/>
+  <img src="assets/model_architecture.png" width="800"/>
 </p>
 <p align="center">
   <i>The architecture of TF-DuNet, featuring a high-fidelity temporal branch (ASST) and a structural time-frequency branch (Decomposition & MSDB).</i>

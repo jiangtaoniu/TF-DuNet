@@ -15,7 +15,7 @@
 这是 **TF-DuNet** 的官方 PyTorch 实现代码。我们的工作致力于解决时间序列预测中的一个核心挑战：同时对高频瞬态动态和准平稳的多尺度结构进行建模。TF-DuNet 引入了一种新颖的非对称双分支架构，显式地解耦并专注于处理这两种互补的信息流。
 
 <p align="center">
-  <img src="assets/figure1.png" width="800"/>
+  <img src="assets/model_architecture.png" width="800"/>
 </p>
 <p align="center">
   <i>TF-DuNet 的架构，包含高保真时间分支 (ASST) 和结构化时频分支 (Decomposition & MSDB)。</i>
