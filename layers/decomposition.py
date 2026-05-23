@@ -3,13 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class my_Layernorm(nn.Module):
+class MyLayerNorm(nn.Module):
     """
-    Special designed layernorm for the seasonal part
+    Specially designed layernorm for the seasonal part.
     """
 
     def __init__(self, channels):
-        super(my_Layernorm, self).__init__()
+        super(MyLayerNorm, self).__init__()
         self.layernorm = nn.LayerNorm(channels)
 
     def forward(self, x):
@@ -18,18 +18,17 @@ class my_Layernorm(nn.Module):
         return x_hat - bias
 
 
-class moving_avg(nn.Module):
+class MovingAvg(nn.Module):
     """
-    Moving average block to highlight the trend of time series
+    Moving average block to highlight the trend of time series.
     """
 
     def __init__(self, kernel_size, stride):
-        super(moving_avg, self).__init__()
+        super(MovingAvg, self).__init__()
         self.kernel_size = kernel_size
         self.avg = nn.AvgPool1d(kernel_size=kernel_size, stride=stride, padding=0)
 
     def forward(self, x):
-        # padding on the both ends of time series
         front = x[:, 0:1, :].repeat(1, (self.kernel_size - 1) // 2, 1)
         end = x[:, -1:, :].repeat(1, (self.kernel_size - 1) // 2, 1)
         x = torch.cat([front, x, end], dim=1)
@@ -38,14 +37,14 @@ class moving_avg(nn.Module):
         return x
 
 
-class series_decomp(nn.Module):
+class SeriesDecomp(nn.Module):
     """
-    Series decomposition block
+    Series decomposition block.
     """
 
     def __init__(self, kernel_size):
-        super(series_decomp, self).__init__()
-        self.moving_avg = moving_avg(kernel_size, stride=1)
+        super(SeriesDecomp, self).__init__()
+        self.moving_avg = MovingAvg(kernel_size, stride=1)
 
     def forward(self, x):
         moving_mean = self.moving_avg(x)
@@ -53,32 +52,32 @@ class series_decomp(nn.Module):
         return res, moving_mean
 
 
-class series_decomp_multi(nn.Module):
+class SeriesDecompMulti(nn.Module):
     """
-    Multiple Series decomposition block from FEDformer
+    Multiple series decomposition block from FEDformer.
     """
 
-    def __init__(self, kernel_size):
-        super(series_decomp_multi, self).__init__()
-        self.kernel_size = kernel_size
-        self.series_decomp = [series_decomp(kernel) for kernel in kernel_size]
+    def __init__(self, kernel_sizes):
+        super(SeriesDecompMulti, self).__init__()
+        self.kernel_sizes = kernel_sizes
+        self.series_decomp = nn.ModuleList([SeriesDecomp(kernel) for kernel in kernel_sizes])
 
     def forward(self, x):
-        moving_mean = []
-        res = []
+        moving_means = []
+        residuals = []
         for func in self.series_decomp:
             sea, moving_avg = func(x)
-            moving_mean.append(moving_avg)
-            res.append(sea)
+            moving_means.append(moving_avg)
+            residuals.append(sea)
 
-        sea = sum(res) / len(res)
-        moving_mean = sum(moving_mean) / len(moving_mean)
+        sea = sum(residuals) / len(residuals)
+        moving_mean = sum(moving_means) / len(moving_means)
         return sea, moving_mean
 
 
 class EncoderLayer(nn.Module):
     """
-    encoder layer with the progressive decomposition architecture
+    Encoder layer with the progressive decomposition architecture.
     """
 
     def __init__(self, attention, d_model, d_ff=None, moving_avg=25, dropout=0.1, activation="relu"):
@@ -87,8 +86,8 @@ class EncoderLayer(nn.Module):
         self.attention = attention
         self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1, bias=False)
         self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=1, bias=False)
-        self.decomp1 = series_decomp(moving_avg)
-        self.decomp2 = series_decomp(moving_avg)
+        self.decomp1 = SeriesDecomp(moving_avg)
+        self.decomp2 = SeriesDecomp(moving_avg)
         self.dropout = nn.Dropout(dropout)
         self.activation = F.relu if activation == "relu" else F.gelu
 
@@ -108,7 +107,7 @@ class EncoderLayer(nn.Module):
 
 class Encoder(nn.Module):
     """
-    encoder
+    Encoder.
     """
 
     def __init__(self, attn_layers, conv_layers=None, norm_layer=None):
@@ -139,7 +138,7 @@ class Encoder(nn.Module):
 
 class DecoderLayer(nn.Module):
     """
-    decoder layer with the progressive decomposition architecture
+    Decoder layer with the progressive decomposition architecture.
     """
 
     def __init__(self, self_attention, cross_attention, d_model, c_out, d_ff=None,
@@ -150,9 +149,9 @@ class DecoderLayer(nn.Module):
         self.cross_attention = cross_attention
         self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1, bias=False)
         self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=1, bias=False)
-        self.decomp1 = series_decomp(moving_avg)
-        self.decomp2 = series_decomp(moving_avg)
-        self.decomp3 = series_decomp(moving_avg)
+        self.decomp1 = SeriesDecomp(moving_avg)
+        self.decomp2 = SeriesDecomp(moving_avg)
+        self.decomp3 = SeriesDecomp(moving_avg)
         self.dropout = nn.Dropout(dropout)
         self.projection = nn.Conv1d(in_channels=d_model, out_channels=c_out, kernel_size=3, stride=1, padding=1,
                                     padding_mode='circular', bias=False)
@@ -181,7 +180,7 @@ class DecoderLayer(nn.Module):
 
 class Decoder(nn.Module):
     """
-    encoder
+    Decoder.
     """
 
     def __init__(self, layers, norm_layer=None, projection=None):

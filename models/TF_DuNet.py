@@ -1,8 +1,8 @@
-import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from layers.decomposition import series_decomp
+
 from layers.Embed import DataEmbedding_wo_pos
 from layers.StandardNorm import Normalize
 from layers.MSDB import MSDB
@@ -10,19 +10,32 @@ from layers.ASST import ASST
 
 
 class DFT_series_decomp(nn.Module):
-    """Series decomposition using Discrete Fourier Transform."""
+    """
+    Series decomposition using Discrete Fourier Transform (DFT).
+
+    This module separates a time series into seasonal and trend components by
+    transforming it into the frequency domain, filtering out low-amplitude
+    frequencies (keeping the top k), and transforming back to the time domain.
+    """
 
     def __init__(self, top_k=5):
         super(DFT_series_decomp, self).__init__()
         self.top_k = top_k
 
     def forward(self, x):
+        # Transform the real-valued time series to the frequency domain using Real Fast Fourier Transform
         xf = torch.fft.rfft(x)
+        # Calculate the magnitude (amplitude) of each frequency component
         freq = abs(xf)
+        # Remove the zero frequency (DC component) to ignore the global mean/trend
         freq[0] = 0
+        # Identify the top 'k' frequency amplitudes indicative of dominant seasonal patterns
         top_k_freq, _ = torch.topk(freq, self.top_k)
+        # Filter out noise/low-impact frequencies below the top 'k' threshold by zeroing them
         xf[freq <= top_k_freq.min()] = 0
+        # Reconstruct the seasonal component via Inverse Real FFT
         x_season = torch.fft.irfft(xf)
+        # The residual represents the slow-moving trend component
         x_trend = x - x_season
         return x_season, x_trend
 
@@ -216,6 +229,10 @@ class DecompositionBranch(nn.Module):
     """
     A branch of the model that performs time-series decomposition,
     multi-scale mixing, and spatial dependency modeling with MSDB.
+
+    It extracts multiple scales of historical data, splits them into trend and seasonal
+    parts, refines the features through multi-scale mixing, models graph correlations
+    at each level, and subsequently fuses the resulting multi-scale representations.
     """
 
     def __init__(self, configs):
@@ -410,13 +427,6 @@ class Model(nn.Module):
                     nn.Linear(configs.seq_len // (configs.down_sampling_window ** i), configs.pred_len)
                     for i in range(configs.down_sampling_layers + 1)
                 ])
-        elif self.task_name in ['imputation', 'anomaly_detection']:
-            proj_out_features = 1 if self.channel_independence == 1 else configs.c_out
-            self.projection_layer = nn.Linear(configs.d_model, proj_out_features, bias=True)
-        elif self.task_name == 'classification':
-            self.act = F.gelu
-            self.dropout = nn.Dropout(configs.dropout)
-            self.projection = nn.Linear(configs.d_model * configs.seq_len, configs.num_class)
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         """Main forecasting logic for the TF-DuNet model."""

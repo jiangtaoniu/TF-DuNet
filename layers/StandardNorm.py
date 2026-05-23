@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class Normalize(nn.Module):
-    def __init__(self, num_features: int, eps=1e-5, affine=False, subtract_last=False, non_norm=False):
+    def __init__(self, num_features: int, eps: float = 1e-5, affine: bool = False, subtract_last: bool = False, non_norm: bool = False):
         """
         :param num_features: the number of features or channels
         :param eps: a value added for numerical stability
@@ -15,6 +15,11 @@ class Normalize(nn.Module):
         self.affine = affine
         self.subtract_last = subtract_last
         self.non_norm = non_norm
+
+        self.last = None
+        self.mean = None
+        self.stdev = None
+
         if self.affine:
             self._init_params()
 
@@ -25,21 +30,21 @@ class Normalize(nn.Module):
         elif mode == 'denorm':
             x = self._denormalize(x)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f"Unsupported mode: {mode}")
         return x
 
     def _init_params(self):
-        # initialize RevIN params: (C,)
         self.affine_weight = nn.Parameter(torch.ones(self.num_features))
         self.affine_bias = nn.Parameter(torch.zeros(self.num_features))
 
     def _get_statistics(self, x):
-        dim2reduce = tuple(range(1, x.ndim - 1))
+        dim_to_reduce = tuple(range(1, x.ndim - 1))
         if self.subtract_last:
             self.last = x[:, -1, :].unsqueeze(1)
         else:
-            self.mean = torch.mean(x, dim=dim2reduce, keepdim=True).detach()
-        self.stdev = torch.sqrt(torch.var(x, dim=dim2reduce, keepdim=True, unbiased=False) + self.eps).detach()
+            self.mean = torch.mean(x, dim=dim_to_reduce, keepdim=True).detach()
+
+        self.stdev = torch.sqrt(torch.var(x, dim=dim_to_reduce, keepdim=True, unbiased=False) + self.eps).detach()
 
     def _normalize(self, x):
         if self.non_norm:

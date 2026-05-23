@@ -1,13 +1,16 @@
+"""
+Main experiment runner script for TF-DuNet on the PEMS08 dataset.
+
+This script parses all hardware, architectural, hyperparameters, and routing logic
+supplied from the command line, subsequently triggering corresponding train/test
+routines over an established dataset boundary limit.
+"""
 import argparse
 import torch
 import random
 import numpy as np
 
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
-# Import other experiment types if you need them
-from exp.exp_anomaly_detection import Exp_Anomaly_Detection
-from exp.exp_classification import Exp_Classification
-from exp.exp_imputation import Exp_Imputation
 from exp.exp_short_term_forecasting import Exp_Short_Term_Forecast
 
 def set_seed(seed):
@@ -132,10 +135,6 @@ parser.add_argument('--use_dtw', action='store_true', default=False, help='Enabl
 # =====================================================================================
 # 6. Framework & Task-Specific Parameters
 # =====================================================================================
-parser.add_argument('--seasonal_patterns', type=str, default='Monthly', help='Seasonal patterns for M4 dataset, required by data provider')
-parser.add_argument('--num_class', type=int, default=7, help='Number of classes for classification task')
-parser.add_argument('--mask_rate', type=float, default=0.25, help='Mask rate for imputation task')
-parser.add_argument('--anomaly_ratio', type=float, default=0.25, help='Anomaly ratio for anomaly detection task')
 parser.add_argument('--factor', type=int, default=3, help='Attention factor for some models like Informer')
 parser.add_argument('--distil', type=bool, default=True, help='Use distilling in encoder for some models')
 parser.add_argument('--output_attention', action='store_true', help='Whether to output attention in encoder')
@@ -162,10 +161,7 @@ if __name__ == '__main__':
 
     Exp_classes = {
         'long_term_forecast': Exp_Long_Term_Forecast,
-        'short_term_forecast': Exp_Short_Term_Forecast,
-        'imputation': Exp_Imputation,
-        'anomaly_detection': Exp_Anomaly_Detection,
-        'classification': Exp_Classification
+        'short_term_forecast': Exp_Short_Term_Forecast
     }
     Exp = Exp_classes[args.task_name]
 

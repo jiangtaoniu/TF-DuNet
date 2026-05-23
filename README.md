@@ -1,51 +1,122 @@
 # TF-DuNet: A Time-Frequency Dual-Branch Network for Time Series Forecasting
 
 <p align="center">
+  <a href="README_ZH.md">简体中文</a> | English
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python Version">
   <img src="https://img.shields.io/badge/PyTorch-1.10+-ee4c2c.svg" alt="PyTorch Version">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </p>
 
-This is the official PyTorch implementation of **TF-DuNet**. Our work tackles a core challenge in time series forecasting: simultaneously modeling high-frequency, transient dynamics and quasi-stationary, multi-scale structures. TF-DuNet introduces a novel asymmetric dual-branch architecture to explicitly decouple and specialize in processing these two complementary information streams, achieving state-of-the-art performance on numerous benchmarks.
+## Introduction
+
+This is the official PyTorch implementation of **TF-DuNet**. Our work tackles a core challenge in time series forecasting: simultaneously modeling high-frequency, transient dynamics and quasi-stationary, multi-scale structures. TF-DuNet introduces a novel asymmetric dual-branch architecture to explicitly decouple and specialize in processing these two complementary information streams.
 
 <p align="center">
   <img src="assets/figure1.png" width="800"/>
 </p>
 <p align="center">
-  <i>The architecture of TF-DuNet, featuring a high-fidelity temporal branch (ASST) and a structural time-frequency branch (GSSTM).</i>
+  <i>The architecture of TF-DuNet, featuring a high-fidelity temporal branch (ASST) and a structural time-frequency branch (Decomposition & MSDB).</i>
 </p>
 
-## Getting Started
+## Architecture
 
-### 1. Setup Environment
-```bash
+TF-DuNet employs a dual-branch architecture consisting of:
 
-conda create --name TF-DuNet python=3.8 -y
+1.  **ASST Branch (Adaptive Sequential Spatio-Temporal block):** A high-fidelity temporal branch that uses self-attention to capture global spatio-temporal dependencies. It directly processes the input sequence to extract high-frequency and transient dynamics.
+2.  **Decomposition Branch:** A structural time-frequency branch that decomposes the time series into trend and seasonal components (via DFT or Moving Average). It processes these components across multiple scales and models spatial dependencies using a dynamic graph-based Multi-Scale Spatial-Temporal Dependency Block (MSDB).
+
+The outputs from these two specialized branches are then dynamically merged using configurable fusion strategies (e.g., addition, gating, film, or cross-attention) to generate the final prediction.
+
+## Project Structure
+
+```
+.
+├── dataset/            # Directory for datasets (needs to be downloaded manually)
+├── models/             # Core model implementation
+│   └── TF_DuNet.py     # Main model architecture (TF-DuNet)
+├── layers/             # Custom neural network layers and blocks (ASST, MSDB, etc.)
+├── data_provider/      # Data loading and preprocessing scripts
+├── exp/                # Experiment runners (train, validate, test)
+├── utils/              # Helper functions and metrics
+├── run_PEMS08.py       # Main entry script for experiments
+├── requirements.txt    # Python dependencies
+├── README.md           # English Documentation
+└── README_ZH.md        # Chinese Documentation
 ```
 
+## Installation
+
+### 1. Setup Environment
+We recommend using Conda to manage your python environment.
+
 ```bash
+conda create --name TF-DuNet python=3.8 -y
 conda activate TF-DuNet
 ```
 
+### 2. Install Dependencies
+
+Install PyTorch (adjust the CUDA version based on your system):
 ```bash
 pip install torch==2.1.0+cu118 torchaudio==2.1.0+cu118 torchvision==0.16.0+cu118 --index-url https://download.pytorch.org/whl/cu118
 ```
 
+Install other required packages:
 ```bash
-pip install axial-positional-embedding==0.2.1 certifi==2022.12.7 charset-normalizer==2.1.1 colorama==0.4.6 cycler==0.12.1 einops==0.4.1 filelock==3.13.1 fsspec==2024.6.1 idna==3.4 jinja2==3.1.4 joblib==1.4.2 kiwisolver==1.4.7 local-attention==1.4.4 markupsafe==2.1.5 matplotlib==3.4.3 mpmath==1.3.0 networkx==3.0 numpy==1.22.4 packaging==25.0 pandas==1.1.5 patool==1.12 patsy==1.0.1 pillow==10.2.0 product-key-memory==0.1.10 pyparsing==3.1.4 python-dateutil==2.9.0.post0 pytz==2025.2 reformer-pytorch==1.4.4 requests==2.28.1 scikit-learn==1.2.1 scipy==1.8.0 six==1.17.0 sktime==0.4.1 statsmodels==0.14.1 sympy==1.11.1 threadpoolctl==3.5.0 tqdm==4.64.0 typing-extensions==4.12.2 urllib3==1.26.13
-
+pip install -r requirements.txt
 ```
+*(Alternatively, you can manually install the required packages listed in the previous README, such as `numpy`, `pandas`, `einops`, `scikit-learn`, etc.)*
 
-### 2. Prepare Data
-Download the datasets from [DataSet](https://drive.google.com/drive/folders/13Cg1KYOlzM5C7K8gK8NfC-F3EYxkM3D2). Place the data files (`.csv` or `.npz`) into the `./dataset/` directory according to their names. The expected structure is:
+### 3. Prepare Data
+Download the required datasets and place them into the `./dataset/` directory.
+
+The expected structure is:
 ```
 dataset/
 ├── PEMS/
-├───── PEMS04.npz
+│   └── PEMS08.npz
 ├── ETT/
-├───── ETTh1.csv
+│   └── ETTh1.csv
 └── ...
 ```
+
+## Usage
+
+You can train and evaluate the model using the provided runner script `run_PEMS08.py`.
+
+### General Training Command
+
+```bash
+python run_PEMS08.py --is_training 1 \
+  --model_id PEMS08 \
+  --model TF_DuNet \
+  --data PEMS \
+  --root_path ./dataset/PEMS/ \
+  --data_path PEMS08.npz \
+  --seq_len 96 \
+  --pred_len 12 \
+  --d_model 128 \
+  --e_layers 5 \
+  --asst_e_layers 3 \
+  --batch_size 16 \
+  --learning_rate 0.001 \
+  --task_name long_term_forecast \
+  --final_fusion_method add
+```
+
+### Key Configurations (based on `run_PEMS08.py`)
+
+- `--task_name`: The type of forecasting task (e.g., `long_term_forecast`, `short_term_forecast`).
+- `--seq_len`: Length of the input historical sequence.
+- `--pred_len`: Length of the target prediction sequence.
+- `--final_fusion_method`: Method to fuse the ASST and Decomposition branches (`add`, `static_weighted`, `concat`, `gate`, `film`, `cross_attention`, `learnable_weighted`, `custom_ranged`).
+- `--msdb_internal_fusion_method`: Fusion method used internally within the MSDB module (`add`, `static_weighted`, `concat`, `gate`, `film`, `cross_attention`).
+- `--decomp_method`: Time series decomposition strategy (`dft_decomp` or `moving_avg`).
+- `--asst_e_layers`: Number of encoder layers in the ASST branch.
+- `--e_layers`: Number of encoder layers in the Decomposition branch.
 
 ## Citation
 
