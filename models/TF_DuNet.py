@@ -1,9 +1,10 @@
+from layers.decomposition import SeriesDecomp
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers.Embed import DataEmbedding_wo_pos
+from layers.Embed import DataEmbeddingWoPos
 from layers.StandardNorm import Normalize
 from layers.MSDB import MSDB
 from layers.ASST import ASST
@@ -240,7 +241,7 @@ class DecompositionBranch(nn.Module):
         self.channel_independence = configs.channel_independence
 
         if configs.decomp_method == 'moving_avg':
-            self.decompsition = series_decomp(configs.moving_avg)
+            self.decompsition = SeriesDecomp(configs.moving_avg)
         elif configs.decomp_method == "dft_decomp":
             self.decompsition = DFT_series_decomp(configs.top_k)
         else:
@@ -370,11 +371,11 @@ class Model(nn.Module):
         self.decomposition_branch_layers = nn.ModuleList(
             [DecompositionBranch(configs) for _ in range(configs.e_layers)])
 
-        self.preprocess = series_decomp(configs.moving_avg)
+        self.preprocess = SeriesDecomp(configs.moving_avg)
         self.use_future_temporal_feature = configs.use_future_temporal_feature
 
         embedding_channels = 1 if self.channel_independence == 1 else configs.enc_in
-        self.enc_embedding = DataEmbedding_wo_pos(embedding_channels, configs.d_model, configs.embed, configs.freq,
+        self.enc_embedding = DataEmbeddingWoPos(embedding_channels, configs.d_model, configs.embed, configs.freq,
                                                   configs.dropout)
 
         self.normalize_layers = nn.ModuleList([

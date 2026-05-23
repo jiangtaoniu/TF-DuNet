@@ -11,11 +11,10 @@ from torch.optim import lr_scheduler
 
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
-, mase_loss, smape_loss
-from utils.metrics import metric
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
-, accelerated_dtw
-, run_augmentation_single
+
+from utils.metrics import metric
+
 
 warnings.filterwarnings('ignore')
 
