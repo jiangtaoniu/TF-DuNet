@@ -71,16 +71,29 @@ pip install -r requirements.txt
 *(Alternatively, you can manually install the required packages listed in the previous README, such as `numpy`, `pandas`, `einops`, `scikit-learn`, etc.)*
 
 ### 3. Prepare Data
-Download the required datasets and place them into the `./dataset/` directory.
+
+**Download**: All benchmark datasets can be downloaded from [Google Drive](https://drive.usercontent.google.com/download?id=1NF7VEefXCmXuWNbnNe858WvQAkJ_7wuP&export=download&authuser=0).
+
+After downloading, extract and place the dataset files into the `./dataset/` directory at the project root.
 
 The expected structure is:
 ```
-dataset/
-├── PEMS/
-│   └── PEMS08.npz
-├── ETT/
-│   └── ETTh1.csv
-└── ...
+TF-DuNet/
+└── dataset/
+    ├── PEMS/
+    │   ├── PEMS03.npz
+    │   └── PEMS08.npz
+    ├── ETT/
+    │   ├── ETTh1.csv
+    │   ├── ETTh2.csv
+    │   ├── ETTm1.csv
+    │   └── ETTm2.csv
+    ├── electricity/
+    │   └── electricity.csv
+    ├── traffic/
+    │   └── traffic.csv
+    └── weather/
+        └── weather.csv
 ```
 
 ## Usage
@@ -131,4 +144,10 @@ If you find this work useful for your research, please consider citing our paper
 ```
 
 ## Acknowledgements
-Our implementation references the code base of [Time-Series-Library](https://github.com/thuml/Time-Series-Library). We thank the original authors for their open-sourcing.
+
+We appreciate the following open-source works that inspired and supported this project:
+
+  - [TimeMixer](https://github.com/kwuking/TimeMixer)
+  - [PatchTST](https://github.com/yuqinie98/PatchTST)
+  - [Time-Series-Library](https://github.com/thuml/Time-Series-Library)
+  - [STAEformer](https://github.com/XDZhelwormo/STAEformer)

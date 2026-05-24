@@ -70,16 +70,29 @@ pip install -r requirements.txt
 ```
 
 ### 3. 准备数据
-下载项目所需的数据集，并将其放置在 `./dataset/` 目录中。
+
+**下载地址**：所有基准测试数据集均可从 [Google Drive](https://drive.usercontent.google.com/download?id=1NF7VEefXCmXuWNbnNe858WvQAkJ_7wuP&export=download&authuser=0) 下载。
+
+下载完成后，请将数据集文件解压并放置到项目根目录下的 `./dataset/` 目录中。
 
 期望的目录结构如下：
 ```
-dataset/
-├── PEMS/
-│   └── PEMS08.npz
-├── ETT/
-│   └── ETTh1.csv
-└── ...
+TF-DuNet/
+└── dataset/
+    ├── PEMS/
+    │   ├── PEMS03.npz
+    │   └── PEMS08.npz
+    ├── ETT/
+    │   ├── ETTh1.csv
+    │   ├── ETTh2.csv
+    │   ├── ETTm1.csv
+    │   └── ETTm2.csv
+    ├── electricity/
+    │   └── electricity.csv
+    ├── traffic/
+    │   └── traffic.csv
+    └── weather/
+        └── weather.csv
 ```
 
 ## 使用方法
@@ -130,4 +143,10 @@ python run_PEMS08.py --is_training 1 \
 ```
 
 ## 致谢
-我们的实现参考了 [Time-Series-Library](https://github.com/thuml/Time-Series-Library) 的代码库。感谢原作者们的开源贡献。
+
+感谢以下优秀的开源项目对本工作的启发和支持：
+
+  - [TimeMixer](https://github.com/kwuking/TimeMixer)
+  - [PatchTST](https://github.com/yuqinie98/PatchTST)
+  - [Time-Series-Library](https://github.com/thuml/Time-Series-Library)
+  - [STAEformer](https://github.com/XDZhelwormo/STAEformer)

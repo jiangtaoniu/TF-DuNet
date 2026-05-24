@@ -12,7 +12,7 @@ from torch.optim import lr_scheduler
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
-
+from utils.dtw_metric import dtw, accelerated_dtw
 from utils.metrics import metric
 
 
